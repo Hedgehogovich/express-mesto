@@ -1,29 +1,10 @@
-const mongoose = require('mongoose');
 const Card = require('../models/card');
-const { INTERNAL_SERVER_ERROR, BAD_REQUEST, NOT_FOUND } = require('../utils/errorCodes');
-const { sendErrorResponse } = require('../utils/sendErrorResponse');
-
-function handleCardQueryError(err, res) {
-  if (
-    err instanceof mongoose.Error.ValidationError
-    || err instanceof mongoose.Error.CastError
-  ) {
-    sendErrorResponse(res, BAD_REQUEST, 'Некорректные данные');
-    return;
-  }
-
-  if (err instanceof mongoose.Error.DocumentNotFoundError) {
-    sendErrorResponse(res, NOT_FOUND, 'Запрашиваемая карточка не найдена');
-    return;
-  }
-
-  sendErrorResponse(res, INTERNAL_SERVER_ERROR, 'Произошла ошибка');
-}
+const { handleCRUDError } = require('../utils/handleCRUDError');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
-    .catch(() => sendErrorResponse(res, INTERNAL_SERVER_ERROR, 'Произошла ошибка'));
+    .catch((err) => handleCRUDError(err, res));
 };
 
 module.exports.createCard = (req, res) => {
@@ -31,7 +12,7 @@ module.exports.createCard = (req, res) => {
 
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ data: card }))
-    .catch((err) => handleCardQueryError(err, res));
+    .catch((err) => handleCRUDError(err, res));
 };
 
 module.exports.deleteCard = (req, res) => {
@@ -40,7 +21,7 @@ module.exports.deleteCard = (req, res) => {
   Card.findByIdAndRemove(cardId)
     .orFail()
     .then((card) => res.send({ data: card }))
-    .catch((err) => handleCardQueryError(err, res));
+    .catch((err) => handleCRUDError(err, res));
 };
 
 module.exports.addLike = (req, res) => {
@@ -59,7 +40,7 @@ module.exports.addLike = (req, res) => {
   )
     .orFail()
     .then((card) => res.send({ data: card }))
-    .catch((err) => handleCardQueryError(err, res));
+    .catch((err) => handleCRUDError(err, res));
 };
 
 module.exports.dislikeLike = (req, res) => {
@@ -78,5 +59,5 @@ module.exports.dislikeLike = (req, res) => {
   )
     .orFail()
     .then((card) => res.send({ data: card }))
-    .catch((err) => handleCardQueryError(err, res));
+    .catch((err) => handleCRUDError(err, res));
 };
