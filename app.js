@@ -1,6 +1,5 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const usersRoutes = require('./routes/users');
@@ -12,7 +11,7 @@ const limiter = rateLimit({
 });
 
 const app = express();
-app.use(bodyParser.json());
+app.use(express.json());
 app.use(helmet());
 app.use(limiter);
 app.use((req, res, next) => {
