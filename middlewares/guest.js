@@ -11,7 +11,7 @@ module.exports = (req, res, next) => {
 
   try {
     jwt.verify(token, process.env.ENCRYPTION_KEY);
-    res.status(403).end();
+    res.status(403).send({ message: 'Доступ запрещён' });
   } catch (err) {
     next();
   }

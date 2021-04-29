@@ -54,6 +54,13 @@ module.exports.findOneUser = (req, res) => {
     .catch((err) => handleCRUDError(err, res));
 };
 
+module.exports.findCurrentUser = (req, res) => {
+  User.findById(req.user._id)
+    .orFail()
+    .then((user) => res.send({ data: user }))
+    .catch((err) => handleCRUDError(err, res));
+};
+
 module.exports.editUser = (req, res) => {
   const { name, about } = req.body;
 
