@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
 const guestMiddleware = require('./middlewares/guest');
+const errorMiddleware = require('./middlewares/error');
 const { createUser, login } = require('./controllers/users');
 
 require('dotenv').config();
@@ -34,3 +35,5 @@ app.use('/cards', cardsRoutes);
 
 app.post('/signin', guestMiddleware, login);
 app.post('/signup', guestMiddleware, createUser);
+
+app.use(errorMiddleware);

@@ -1,17 +1,19 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { MongoError } = require('mongodb');
 const User = require('../models/user');
-const { BCRYPT_SALT_ROUNDS } = require('../utils/constants');
-const { BAD_REQUEST } = require('../utils/errorCodes');
-const { handleCRUDError } = require('../utils/handleCRUDError');
+const { ConflictError } = require('../utils/errors/ConflictError');
+const { UnauthorizedError } = require('../utils/errors/UnauthorizedError');
+const { BadRequestError } = require('../utils/errors/BadRequestError');
+const { BCRYPT_SALT_ROUNDS, MONGODB_DUPLICATE_ERROR_CODE } = require('../utils/constants');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch((err) => handleCRUDError(err, res));
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name,
     about,
@@ -21,17 +23,17 @@ module.exports.createUser = (req, res) => {
   } = req.body;
 
   if (!password || !password.length) {
-    res.status(BAD_REQUEST).send({ message: 'Не указан пароль' });
+    next(new BadRequestError('Не указан пароль'));
     return;
   }
 
   if (password.length < 8) {
-    res.status(BAD_REQUEST).send({ message: 'Пароль должен быть длиннее 8 символов' });
+    next(new BadRequestError('Пароль должен быть длиннее 8 символов'));
     return;
   }
 
   if (!email || !email.length) {
-    res.status(BAD_REQUEST).send({ message: 'Не указан Email' });
+    next(new BadRequestError('Не указан Email'));
     return;
   }
 
@@ -44,24 +46,30 @@ module.exports.createUser = (req, res) => {
       password: hash,
     }))
     .then((user) => res.send({ data: user }))
-    .catch((err) => handleCRUDError(err, res));
+    .catch((err) => {
+      if (err instanceof MongoError && err.code === MONGODB_DUPLICATE_ERROR_CODE) {
+        next(new ConflictError('Пользователь с таким Email уже существует'));
+      } else {
+        next(err);
+      }
+    });
 };
 
-module.exports.findOneUser = (req, res) => {
+module.exports.findOneUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail()
     .then((user) => res.send({ data: user }))
-    .catch((err) => handleCRUDError(err, res));
+    .catch(next);
 };
 
-module.exports.findCurrentUser = (req, res) => {
+module.exports.findCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail()
     .then((user) => res.send({ data: user }))
-    .catch((err) => handleCRUDError(err, res));
+    .catch(next);
 };
 
-module.exports.editUser = (req, res) => {
+module.exports.editUser = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -74,10 +82,10 @@ module.exports.editUser = (req, res) => {
   )
     .orFail()
     .then((user) => res.send({ data: user }))
-    .catch((err) => handleCRUDError(err, res));
+    .catch(next);
 };
 
-module.exports.editAvatar = (req, res) => {
+module.exports.editAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -90,19 +98,19 @@ module.exports.editAvatar = (req, res) => {
   )
     .orFail()
     .then((user) => res.send({ data: user }))
-    .catch((err) => handleCRUDError(err, res));
+    .catch(next);
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!password || !password.length) {
-    res.status(BAD_REQUEST).send({ message: 'Не указан пароль' });
+    next(new BadRequestError('Не указан пароль'));
     return;
   }
 
   if (!email || !email.length) {
-    res.status(BAD_REQUEST).send({ message: 'Не указан Email' });
+    next(new BadRequestError('Не указан Email'));
     return;
   }
 
@@ -121,8 +129,6 @@ module.exports.login = (req, res) => {
       }).end();
     })
     .catch((err) => {
-      res
-        .status(401)
-        .send({ message: err.message });
+      next(new UnauthorizedError(err.message));
     });
 };
