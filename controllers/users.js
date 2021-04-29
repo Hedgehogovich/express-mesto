@@ -1,6 +1,8 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const { BCRYPT_SALT_ROUNDS } = require('../utils/constants');
+const { BAD_REQUEST } = require('../utils/errorCodes');
 const { handleCRUDError } = require('../utils/handleCRUDError');
 
 module.exports.getUsers = (req, res) => {
@@ -18,7 +20,22 @@ module.exports.createUser = (req, res) => {
     password,
   } = req.body;
 
-  bcrypt.hash(password, process.env.ENCRYPTION_KEY)
+  if (!password || !password.length) {
+    res.status(BAD_REQUEST).send({ message: 'Не указан пароль' });
+    return;
+  }
+
+  if (password.length < 8) {
+    res.status(BAD_REQUEST).send({ message: 'Пароль должен быть длиннее 8 символов' });
+    return;
+  }
+
+  if (!email || !email.length) {
+    res.status(BAD_REQUEST).send({ message: 'Не указан Email' });
+    return;
+  }
+
+  bcrypt.hash(password, BCRYPT_SALT_ROUNDS)
     .then((hash) => User.create({
       name,
       about,
@@ -71,6 +88,16 @@ module.exports.editAvatar = (req, res) => {
 
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
+
+  if (!password || !password.length) {
+    res.status(BAD_REQUEST).send({ message: 'Не указан пароль' });
+    return;
+  }
+
+  if (!email || !email.length) {
+    res.status(BAD_REQUEST).send({ message: 'Не указан Email' });
+    return;
+  }
 
   User.findUserByCredentials(email, password)
     .then((user) => {
