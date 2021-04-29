@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
+const { createUser, login } = require('./controllers/users');
 
 require('dotenv').config();
 
@@ -34,3 +35,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.listen(3000);
 app.use('/users', usersRoutes);
 app.use('/cards', cardsRoutes);
+
+app.post('/signin', login);
+app.post('/signup', createUser);
