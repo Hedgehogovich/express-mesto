@@ -20,22 +20,22 @@
   },
   "homepage": "https://github.com/Hedgehogovich/express-mesto#readme",
   "devDependencies": {
-    "eslint": "^7.24.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "nodemon": "^2.0.7"
+    "eslint": "7.25.0",
+    "eslint-config-airbnb-base": "14.2.1",
+    "eslint-plugin-import": "2.22.1",
+    "nodemon": "2.0.7"
   },
   "dependencies": {
-    "bcrypt": "^5.0.1",
-    "celebrate": "^14.0.0",
-    "cookie-parser": "^1.4.5",
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
-    "express-rate-limit": "^5.2.6",
-    "helmet": "^4.4.1",
-    "jsonwebtoken": "^8.5.1",
-    "mongodb": "^3.6.5",
-    "mongoose": "^5.12.3",
-    "validator": "^13.6.0"
+    "bcrypt": "5.0.1",
+    "celebrate": "14.0.0",
+    "cookie-parser": "1.4.5",
+    "dotenv": "8.2.0",
+    "express": "4.17.1",
+    "express-rate-limit": "5.2.6",
+    "helmet": "4.5.0",
+    "jsonwebtoken": "8.5.1",
+    "mongodb": "3.6.6",
+    "mongoose": "5.12.6",
+    "validator": "13.6.0"
   }
 }
