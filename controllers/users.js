@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const { handleCRUDError } = require('../utils/handleCRUDError');
 
@@ -16,13 +18,14 @@ module.exports.createUser = (req, res) => {
     password,
   } = req.body;
 
-  User.create({
-    name,
-    about,
-    avatar,
-    email,
-    password,
-  })
+  bcrypt.hash(password, process.env.ENCRYPTION_KEY)
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
     .then((user) => res.send({ data: user }))
     .catch((err) => handleCRUDError(err, res));
 };
@@ -64,4 +67,28 @@ module.exports.editAvatar = (req, res) => {
     .orFail()
     .then((user) => res.send({ data: user }))
     .catch((err) => handleCRUDError(err, res));
+};
+
+module.exports.login = (req, res) => {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        process.env.ENCRYPTION_KEY,
+        { expiresIn: 604800 },
+      );
+
+      res.cookie('jwt', token, {
+        maxAge: 604800,
+        httpOnly: true,
+        sameSite: true,
+      }).end();
+    })
+    .catch((err) => {
+      res
+        .status(401)
+        .send({ message: err.message });
+    });
 };

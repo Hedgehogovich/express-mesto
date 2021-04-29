@@ -5,6 +5,8 @@ const rateLimit = require('express-rate-limit');
 const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
 
+require('dotenv').config();
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
