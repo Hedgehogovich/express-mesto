@@ -10,15 +10,16 @@ const {
 } = require('../controllers/users');
 
 router.get('/', authMiddleware, getUsers);
+router.get('/me', authMiddleware, findCurrentUser);
 router.get('/:userId', authMiddleware, celebrate({
-  [Segments.PARAMS]: Joi.object().schema({
-    userId: Joi.number().required().messages({
+  [Segments.PARAMS]: Joi.object().keys({
+    userId: Joi.string().alphanum().required().messages({
       'any.required': 'Некорректный ID пользователя',
-      'number.base': 'Некорректный ID пользователя',
+      'string.base': 'Некорректный ID пользователя',
+      'string.alphanum': 'Некорректный ID пользователя',
     }),
   }),
 }), findOneUser);
-router.get('/me', authMiddleware, findCurrentUser);
 router.patch('/me', authMiddleware, celebrate({
   [Segments.BODY]: Joi.object().keys({
     name: Joi.string().required().min(2).max(30)

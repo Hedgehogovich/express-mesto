@@ -10,10 +10,11 @@ const {
 } = require('../controllers/cards');
 
 const cardIdValidator = celebrate({
-  [Segments.PARAMS]: Joi.object().schema({
-    cardId: Joi.number().required().messages({
+  [Segments.PARAMS]: Joi.object().keys({
+    cardId: Joi.string().alphanum().required().messages({
       'any.required': 'Некорректный ID карточки',
-      'number.base': 'Некорректный ID карточки',
+      'string.base': 'Некорректный ID карточки',
+      'string.alphanum': 'Некорректный ID карточки',
     }),
   }),
 });
