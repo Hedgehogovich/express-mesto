@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { isCelebrateError } = require('celebrate');
 const { ConflictError } = require('../utils/errors/ConflictError');
 const { UnauthorizedError } = require('../utils/errors/UnauthorizedError');
 const { NotFoundError } = require('../utils/errors/NotFoundError');
@@ -6,9 +7,25 @@ const { InternalServerError } = require('../utils/errors/InternalServerError');
 const { BadRequestError } = require('../utils/errors/BadRequestError');
 const { BAD_REQUEST, INTERNAL_SERVER_ERROR, NOT_FOUND } = require('../utils/httpsErrorCodes');
 
+function handleCelebrateError(err, req, res) {
+  const [, firstSegmentError] = err.details.entries().next().value;
+
+  res.status(BAD_REQUEST).send({ message: firstSegmentError.message });
+}
+
+function handleUnexpectedError(err, res) {
+  console.error(err.message);
+  res.status(INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
+}
+
 module.exports = (err, req, res, next) => {
   if (res.headersSent) {
     return next(err);
+  }
+
+  if (isCelebrateError(err)) {
+    handleCelebrateError(err, req, res);
+    return;
   }
 
   switch (err.name) {
@@ -19,6 +36,14 @@ module.exports = (err, req, res, next) => {
     case mongoose.Error.DocumentNotFoundError.name:
       res.status(NOT_FOUND).send({ message: 'Запрашиваемые данные не найдены' });
       break;
+    case SyntaxError.name:
+      // Обработка исключения при некорректном JSON внутри express
+      if (err.status === 400 && 'body' in err) {
+        res.status(BAD_REQUEST).send({ message: 'Некорректные данные' });
+      } else {
+        handleUnexpectedError(err, res);
+      }
+      break;
     case BadRequestError.name:
     case InternalServerError.name:
     case NotFoundError.name:
@@ -27,7 +52,6 @@ module.exports = (err, req, res, next) => {
       res.status(err.statusCode).send({ message: err.message });
       break;
     default:
-      console.error(err, err.name, err.message);
-      res.status(INTERNAL_SERVER_ERROR).send({ message: 'Произошла ошибка' });
+      handleUnexpectedError(err, res);
   }
 };

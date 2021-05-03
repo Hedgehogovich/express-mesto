@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { celebrate, Joi } = require('celebrate');
+const { celebrate, Joi, Segments } = require('celebrate');
 const authMiddleware = require('../middlewares/auth');
 const {
   getUsers,
@@ -11,20 +11,39 @@ const {
 
 router.get('/', authMiddleware, getUsers);
 router.get('/:userId', authMiddleware, celebrate({
-  params: Joi.object().schema({
-    userId: Joi.number().required(),
+  [Segments.PARAMS]: Joi.object().schema({
+    userId: Joi.number().required().messages({
+      'any.required': 'Некорректный ID пользователя',
+      'number.base': 'Некорректный ID пользователя',
+    }),
   }),
 }), findOneUser);
 router.get('/me', authMiddleware, findCurrentUser);
 router.patch('/me', authMiddleware, celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    about: Joi.string().required().min(2).max(30),
+  [Segments.BODY]: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30)
+      .messages({
+        'any.required': 'Поле Имя обязательно для заполнения',
+        'string.empty': 'Поле Имя обязательно для заполнения',
+        'string.min': 'Имя должно быть не менее 2 символов в длину',
+        'string.max': 'Имя должно быть не более 30 символов в длину',
+      }),
+    about: Joi.string().required().min(2).max(30)
+      .messages({
+        'any.required': 'Поле Описание обязательно для заполнения',
+        'string.empty': 'Поле Описание обязательно для заполнения',
+        'string.min': 'Описание должно быть не менее 2 символов в длину',
+        'string.max': 'Описание должно быть не более 30 символов в длину',
+      }),
   }),
 }), editUser);
 router.patch('/me/avatar', authMiddleware, celebrate({
-  body: Joi.object().keys({
-    avatar: Joi.string().uri().required(),
+  [Segments.BODY]: Joi.object().keys({
+    avatar: Joi.string().uri().required().messages({
+      'any.required': 'Поле Аватар обязательно для заполнения',
+      'string.empty': 'Поле Аватар обязательно для заполнения',
+      'string.uri': 'Некорректная ссылка',
+    }),
   }),
 }), editAvatar);
 

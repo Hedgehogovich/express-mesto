@@ -45,7 +45,7 @@ module.exports.createUser = (req, res, next) => {
       email,
       password: hash,
     }))
-    .then((user) => res.send({ data: user }))
+    .then(() => res.end())
     .catch((err) => {
       if (err instanceof MongoError && err.code === MONGODB_DUPLICATE_ERROR_CODE) {
         next(new ConflictError('Пользователь с таким Email уже существует'));

@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const { celebrate, Joi } = require('celebrate');
+const { celebrate, Joi, Segments } = require('celebrate');
 const authMiddleware = require('../middlewares/auth');
 const {
   getCards,
@@ -10,16 +10,29 @@ const {
 } = require('../controllers/cards');
 
 const cardIdValidator = celebrate({
-  params: Joi.object().schema({
-    cardId: Joi.number().required(),
+  [Segments.PARAMS]: Joi.object().schema({
+    cardId: Joi.number().required().messages({
+      'any.required': 'Некорректный ID карточки',
+      'number.base': 'Некорректный ID карточки',
+    }),
   }),
 });
 
 router.get('/', authMiddleware, getCards);
 router.post('/', authMiddleware, celebrate({
-  body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    link: Joi.string().uri().required(),
+  [Segments.BODY]: Joi.object().keys({
+    name: Joi.string().required().min(2).max(30)
+      .messages({
+        'any.required': 'Поле Название обязательно для заполнения',
+        'string.empty': 'Поле Название обязательно для заполнения',
+        'string.min': 'Название должно быть не менее 2 символов в длину',
+        'string.max': 'Название должно быть не более 30 символов в длину',
+      }),
+    link: Joi.string().uri().required().messages({
+      'any.required': 'Поле Ссылка обязательно для заполнения',
+      'string.empty': 'Поле Ссылка обязательно для заполнения',
+      'string.uri': 'Некорректная ссылка',
+    }),
   }),
 }), createCard);
 router.delete('/:cardId', authMiddleware, cardIdValidator, deleteCard);

@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 const validator = require('validator');
+const { URL_REGEXP } = require('../utils/constants');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -31,6 +32,10 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
+    validate: {
+      validator: (v) => URL_REGEXP.test(v),
+      message: (props) => `${props.value} не является корректной ссылкой`,
+    },
   },
 });
 
