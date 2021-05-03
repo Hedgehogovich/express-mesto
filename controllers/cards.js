@@ -1,4 +1,5 @@
 const Card = require('../models/card');
+const { ForbiddenError } = require('../utils/errors/ForbiddenError');
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -17,8 +18,15 @@ module.exports.createCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
 
-  Card.findOneAndRemove({ _id: cardId, owner: req.user._id })
+  Card.findById(cardId)
     .orFail()
+    .then((card) => {
+      if (card.owner.toString() !== req.user._id) {
+        throw new ForbiddenError('У вас нет прав на удаление данной карточки');
+      }
+
+      return Card.findByIdAndRemove(cardId).orFail();
+    })
     .then((card) => res.send({ data: card }))
     .catch(next);
 };

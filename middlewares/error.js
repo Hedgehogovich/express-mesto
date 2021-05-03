@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { isCelebrateError } = require('celebrate');
+const { ForbiddenError } = require('../utils/errors/ForbiddenError');
 const { ConflictError } = require('../utils/errors/ConflictError');
 const { UnauthorizedError } = require('../utils/errors/UnauthorizedError');
 const { NotFoundError } = require('../utils/errors/NotFoundError');
@@ -46,6 +47,7 @@ module.exports = (err, req, res, next) => {
       break;
     case BadRequestError.name:
     case InternalServerError.name:
+    case ForbiddenError.name:
     case NotFoundError.name:
     case UnauthorizedError.name:
     case ConflictError.name:

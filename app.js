@@ -8,6 +8,7 @@ const usersRoutes = require('./routes/users');
 const cardsRoutes = require('./routes/cards');
 const guestMiddleware = require('./middlewares/guest');
 const errorMiddleware = require('./middlewares/error');
+const notFoundMiddleware = require('./middlewares/notFound');
 const { createUser, login } = require('./controllers/users');
 
 require('dotenv').config();
@@ -76,4 +77,5 @@ app.post('/signup', guestMiddleware, celebrate({
   }),
 }), createUser);
 
+app.use(notFoundMiddleware);
 app.use(errorMiddleware);
